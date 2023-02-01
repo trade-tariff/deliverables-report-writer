@@ -1,0 +1,11 @@
+autopep8==2.0.1
+flake8==6.0.0
+lxml==4.9.2
+mccabe==0.7.0
+pycodestyle==2.10.0
+pyflakes==3.0.1
+python-dateutil==2.8.2
+python-docx==0.8.11
+python-dotenv==0.21.1
+six==1.16.0
+tomli==2.0.1
