@@ -12,6 +12,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from classes.story import Story, StoryGroup
+import classes.globals as g
 
 
 class ReportWriter(object):
@@ -55,14 +56,29 @@ class ReportWriter(object):
             line_count = 0
             for row in csv_reader:
                 if line_count == 0:
-                    # print(f'Column names are {", ".join(row)}')
+                    self.get_keys(row)
                     line_count += 1
                 else:
                     story = Story(row)
                     self.stories.append(story)
-                    # print(f'\t{row[0]} works in the {row[1]} department, and was born in {row[2]}.')
                     line_count += 1
             print(f'Processed {line_count} lines.')
+
+    def get_keys(self, row):
+        for item in g.fields:
+            field = g.fields[item]
+            column_index = -1
+            found = False
+            for cell in row:
+                column_index += 1
+                if cell == field["header"]:
+                    field["actual"] = column_index
+                    found = True
+                    break
+                a = 1
+            if not found:
+                field["actual"] = field["default"]
+        a = 1
 
     def group_stories(self):
         self.story_groups = []

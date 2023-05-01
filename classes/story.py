@@ -1,8 +1,11 @@
+import classes.globals as g
+
+
 class Story(object):
     def __init__(self, row):
-        self.key = row[1]
-        self.summary = row[0]
-        self.epic = row[85]
+        self.key = row[g.fields["key"]["actual"]]
+        self.summary = row[g.fields["summary"]["actual"]]
+        self.epic = row[g.fields["epic"]["actual"]]
 
 class StoryGroup(object):
     def __init__(self):
