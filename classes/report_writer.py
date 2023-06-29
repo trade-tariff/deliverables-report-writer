@@ -1,12 +1,9 @@
 import csv
 import os
 import shutil
-import csv
-import sys
 from dotenv import load_dotenv
 from docx import Document
 from docx.shared import Cm
-from docx.enum.section import WD_ORIENT
 from docx.oxml.shared import OxmlElement, qn
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -26,7 +23,6 @@ class ReportWriter(object):
     def get_date_string(self):
         d = datetime.now()
         day = int(d.strftime("%d"))
-        month = int(d.strftime("%-m"))
         if day < 15:
             d = d - relativedelta(months=1)
         self.year = d.strftime("%y")
@@ -38,6 +34,15 @@ class ReportWriter(object):
         self.csv_folder = os.path.join(self.resources_folder, "csv")
         self.report_folder = os.path.join(self.resources_folder, "report")
         self.template_folder = os.path.join(self.resources_folder, "template")
+
+        # Make folders
+        if not os.path.isdir(self.resources_folder):
+            os.mkdir(self.resources_folder)
+        if not os.path.isdir(self.csv_folder):
+            os.mkdir(self.csv_folder)
+        if not os.path.isdir(self.report_folder):
+            os.mkdir(self.report_folder)
+
         self.stories = []
 
         self.template_filename = os.path.join(self.template_folder, "report_template.docx")
@@ -75,10 +80,9 @@ class ReportWriter(object):
                     field["actual"] = column_index
                     found = True
                     break
-                a = 1
+
             if not found:
                 field["actual"] = field["default"]
-        a = 1
 
     def group_stories(self):
         self.story_groups = []
@@ -100,11 +104,8 @@ class ReportWriter(object):
 
         story_group.epic = story.epic
         self.story_groups.append(story_group)
-        a = 1
 
     def set_repeat_table_header(self, row):
-        """ set repeat table row on every new page
-        """
         tr = row._tr
         trPr = tr.get_or_add_trPr()
         tblHeader = OxmlElement('w:tblHeader')
@@ -136,7 +137,6 @@ class ReportWriter(object):
                 hdr_cells = table.rows[row_count].cells
                 hdr_cells[0].text = str(story.key)
                 hdr_cells[1].text = str(story.summary)
-
                 row_count += 1
 
         self.document.save(self.report_filename)
@@ -144,10 +144,10 @@ class ReportWriter(object):
 
     def copy_to_governance_folder(self):
         load_dotenv('.env')
-        filename = os.path.basename(self.report_filename)
         self.governance_folder = os.getenv('governance_folder')
-        dest = os.path.join(self.governance_folder, filename)
-        shutil.copy(self.report_filename, self.governance_folder)
+        if self.governance_folder is not None and self.governance_folder != "":
+            if os.path.isdir(self.governance_folder):
+                shutil.copy(self.report_filename, self.governance_folder)
 
     def get_latest_csv(self):
         files = os.listdir(self.csv_folder)

@@ -119,4 +119,5 @@ instructions.md
 
 # Database
 database.ini
-resources/
+resources/csv/*.csv
+resources/report/
