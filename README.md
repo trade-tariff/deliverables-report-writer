@@ -18,7 +18,7 @@ Writes monthly reports based on JIRA CSV data extracts
 
 - `governance_folder`
 
-  set to the folder to which reports are to be copied / stored permanently. If this is not set, then the file will not be copied
+  set to the folder to which reports are to be copied / stored permanently. If this is not set, then the file will not be copied.
 
 ## Preparation
 
