@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from docx import Document
 from docx.shared import Cm
 from docx.oxml.shared import OxmlElement, qn
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -30,6 +31,12 @@ class ReportWriter(object):
         self.month_name = d.strftime("%b")
 
     def get_config(self):
+        load_dotenv('.env')
+        try:
+            self.write_story_points = int(os.getenv('write_story_points'))
+        except Exception as e:
+            self.write_story_points = 0
+
         self.resources_folder = os.path.join(os.getcwd(), "resources")
         self.csv_folder = os.path.join(self.resources_folder, "csv")
         self.report_folder = os.path.join(self.resources_folder, "report")
@@ -119,24 +126,48 @@ class ReportWriter(object):
 
         for story_group in self.story_groups:
             self.document.add_heading(story_group.epic, 1)
-            table = self.document.add_table(rows=len(story_group.stories) + 1, cols=2)
+
+            if self.write_story_points:
+                widths = (Cm(2.5), Cm(12), Cm(1.5))
+                headers = ["Story", "Description", "Points"]
+                column_count = 3
+            else:
+                widths = (Cm(2.5), Cm(13.5))
+                headers = ["Story", "Description"]
+                column_count = 2
+
+            # Add the table
+            table = self.document.add_table(rows=len(story_group.stories) + 1, cols=column_count)
             table.style = "List Table 3"
-            widths = (Cm(2.5), Cm(13.5))
+
+            # Set table widths
             for row in table.rows:
                 for idx, width in enumerate(widths):
                     row.cells[idx].width = width
 
+            # Set table headers
             self.set_repeat_table_header(table.rows[0])
             hdr_cells = table.rows[0].cells
-            headers = ["Story", "Description"]
             for i in range(0, len(headers)):
-                hdr_cells[i].text = headers[i]
+                p = hdr_cells[i].paragraphs[0]
+                if i == 2:
+                    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p.text = headers[i]
 
+                # hdr_cells[i].text = headers[i]
+
+            # Fill table cells
             row_count = 1
             for story in story_group.stories:
-                hdr_cells = table.rows[row_count].cells
-                hdr_cells[0].text = str(story.key)
-                hdr_cells[1].text = str(story.summary)
+                cells = table.rows[row_count].cells
+                cells[0].text = story.key
+                cells[1].text = story.summary
+                if self.write_story_points:
+                    p = cells[2].paragraphs[0]
+                    if story.story_points != "":
+                        p.text = story.story_points
+                        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
                 row_count += 1
 
         self.document.save(self.report_filename)

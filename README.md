@@ -20,6 +20,10 @@ Writes monthly reports based on JIRA CSV data extracts
 
   set to the folder to which reports are to be copied / stored permanently. If this is not set, then the file will not be copied.
 
+- `write_story_points`
+
+  Set to `1` to write a story points column, or `0` (or omit) to not write the story points column.
+
 ## Preparation
 
 ## JIRA preparation
