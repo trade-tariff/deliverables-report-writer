@@ -6,6 +6,8 @@ from docx import Document
 from docx.shared import Cm
 from docx.oxml.shared import OxmlElement, qn
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import nsdecls
+from docx.oxml import parse_xml
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -120,24 +122,32 @@ class ReportWriter(object):
         trPr.append(tblHeader)
         return row
 
+    def color_row(self, row, rgb="f0f0f0"):
+        for cell in row.cells:
+            shading_elm_2 = parse_xml(r'<w:shd {} w:fill="f0f0f0"/>'.format(nsdecls('w')))
+            cell._tc.get_or_add_tcPr().append(shading_elm_2)
+
     def write(self):
         self.document = Document(self.template_filename)
         self.document.add_heading(self.title, 0)
 
         for story_group in self.story_groups:
+            total = 0
             self.document.add_heading(story_group.epic, 1)
 
             if self.write_story_points:
                 widths = (Cm(2.5), Cm(12), Cm(1.5))
                 headers = ["Story", "Description", "Points"]
                 column_count = 3
+                row_increment = 2
             else:
                 widths = (Cm(2.5), Cm(13.5))
                 headers = ["Story", "Description"]
                 column_count = 2
+                row_increment = 1
 
             # Add the table
-            table = self.document.add_table(rows=len(story_group.stories) + 1, cols=column_count)
+            table = self.document.add_table(rows=len(story_group.stories) + row_increment, cols=column_count)
             table.style = "List Table 3"
 
             # Set table widths
@@ -165,10 +175,22 @@ class ReportWriter(object):
                 if self.write_story_points:
                     p = cells[2].paragraphs[0]
                     if story.story_points != "":
+                        total += int(story.story_points)
                         p.text = story.story_points
                         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
                 row_count += 1
+
+            # Write the totals row
+            if self.write_story_points:
+                row = table.rows[row_count]
+                self.color_row(row, "f0f0f0")
+                cells = row.cells
+                cells[0].text = "TOTAL"
+                p = cells[2].paragraphs[0]
+                runner = p.add_run(str(total))
+                runner.bold = True
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
         self.document.save(self.report_filename)
         self.copy_to_governance_folder()
