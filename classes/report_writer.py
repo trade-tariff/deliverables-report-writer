@@ -40,15 +40,15 @@ class ReportWriter(object):
             self.write_story_points = 0
 
         self.resources_folder = os.path.join(os.getcwd(), "resources")
-        self.csv_folder = os.path.join(self.resources_folder, "csv")
+        self.jira_folder = os.path.join(self.resources_folder, "jira")
         self.report_folder = os.path.join(self.resources_folder, "report")
         self.template_folder = os.path.join(self.resources_folder, "template")
 
         # Make folders
         if not os.path.isdir(self.resources_folder):
             os.mkdir(self.resources_folder)
-        if not os.path.isdir(self.csv_folder):
-            os.mkdir(self.csv_folder)
+        if not os.path.isdir(self.jira_folder):
+            os.mkdir(self.jira_folder)
         if not os.path.isdir(self.report_folder):
             os.mkdir(self.report_folder)
 
@@ -203,6 +203,6 @@ class ReportWriter(object):
                 shutil.copy(self.report_filename, self.governance_folder)
 
     def get_latest_csv(self):
-        files = os.listdir(self.csv_folder)
-        paths = [os.path.join(self.csv_folder, basename) for basename in files]
+        files = os.listdir(self.jira_folder)
+        paths = [os.path.join(self.jira_folder, basename) for basename in files]
         self.csv_file = max(paths, key=os.path.getctime)

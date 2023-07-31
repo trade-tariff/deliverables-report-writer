@@ -119,5 +119,5 @@ instructions.md
 
 # Database
 database.ini
-resources/csv/*.csv
-resources/report/
+resources/jira/*.csv
+resources/report/*.docx
