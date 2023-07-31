@@ -38,7 +38,7 @@ Make sure that all story titles (summary field) make sense out of context of JIR
 
   where the `labels` variable is replaced with an appropriate value for the required month. This lists out all of the stories which have been set to done in the given month period, provided the labels have been set correctly on JIRA.
 
-- Extract a data file from JIRA (Export > Export CSV (all fields)) and save it to the `/resources/csv` folder.
+- Extract a data file from JIRA (Export > Export CSV (all fields)) and save it to the `/resources/jira` folder.
 
 - Save the file with a filename in the format `2306 Sample monthly report (JIRA).csv`, replacing the yymm with the year and month that are relevant.
 
@@ -56,7 +56,7 @@ Execute the application via `python3 write.py`
 
 This:
 
-- looks for the latest CSV file in the `/resources/csv` folder.
+- looks for the latest CSV file in the `/resources/jira` folder.
 
 - writes an equivalent `.docx` Word document to the `report` folder, using the template stored in the `/resources/template` folder.
 
