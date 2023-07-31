@@ -121,3 +121,4 @@ instructions.md
 database.ini
 resources/jira/*.csv
 resources/report/*.docx
+~$*
