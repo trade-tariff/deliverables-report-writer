@@ -37,6 +37,7 @@ class ReportWriter(object):
         try:
             self.write_story_points = int(os.getenv('write_story_points'))
         except Exception as e:
+            print(e.args)
             self.write_story_points = 0
 
         self.resources_folder = os.path.join(os.getcwd(), "resources")
@@ -203,6 +204,7 @@ class ReportWriter(object):
                 shutil.copy(self.report_filename, self.governance_folder)
 
     def get_latest_csv(self):
-        files = os.listdir(self.jira_folder)
+        pattern = os.path.join(self.jira_folder, "*.csv")
+        files = os.listdir(pattern)
         paths = [os.path.join(self.jira_folder, basename) for basename in files]
         self.csv_file = max(paths, key=os.path.getctime)
