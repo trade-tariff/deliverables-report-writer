@@ -6,7 +6,12 @@ Writes monthly reports based on JIRA CSV data extracts
 
 - Create a virtual environment: `python3 -m venv venv/`.
 
-- Activate the virtual environment: `source venv/bin/activate`.
+## Implementation steps (Windows)
+
+- Activate the virtual environment (Mac): `source venv/bin/activate`.
+- Activate the virtual environment (Windows): `.\venv\Scripts\activate`.
+
+## Implementation steps (common)
 
 - Install development Python modules via `pip3 install -r requirements-dev.txt`.
 
@@ -50,9 +55,13 @@ Make sure that all story titles (summary field) make sense out of context of JIR
 |1|Issue key (unique ID)|
 |81|Parent summary, i.e. the name of the epic to which the story belongs.|
 
-## Usage
+## Usage (Mac)
 
 Execute the application via `python3 write.py`
+
+## Usage (PC)
+
+Execute the application via `python write.py`
 
 This:
 
