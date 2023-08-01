@@ -37,6 +37,7 @@ class ReportWriter(object):
         try:
             self.write_story_points = int(os.getenv('write_story_points'))
         except Exception as e:
+            print(e.args)
             self.write_story_points = 0
 
         self.resources_folder = os.path.join(os.getcwd(), "resources")
