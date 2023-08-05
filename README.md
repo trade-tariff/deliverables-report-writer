@@ -4,7 +4,7 @@ Writes monthly reports based on JIRA CSV data extracts
 
 ## Implementation steps
 
-- Create a virtual environment: `python3 -m venv venv/`.
+- Create a virtual environment: `python -m venv venv/`.
 
 ## Implementation steps (Windows)
 
@@ -13,9 +13,9 @@ Writes monthly reports based on JIRA CSV data extracts
 
 ## Implementation steps (common)
 
-- Install development Python modules via `pip3 install -r requirements-dev.txt`.
+- Install development Python modules via `pip install -r requirements-dev.txt`.
 
-- Install necessary Python modules via `pip3 install -r requirements.txt`.
+- Install necessary Python modules via `pip install -r requirements.txt`.
 
 - Copy the `env.sample` file to `.env` and then populate with required environment variables.
 
@@ -57,7 +57,7 @@ Make sure that all story titles (summary field) make sense out of context of JIR
 
 ## Usage (Mac)
 
-Execute the application via `python3 write.py`
+Execute the application via `python write.py`
 
 ## Usage (PC)
 
