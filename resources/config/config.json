@@ -1,0 +1,23 @@
+{
+    "theme_assignments": {
+        "Windsor Framework FPO": {
+            "priority": 1,
+            "epics": [
+                "Bulk search POC (Windsor Framework FPOs)",
+                "The Windsor Framework - FPO"
+            ]
+        },
+        "Windsor Framework Green Lane": {
+            "priority": 2,
+            "epics": [
+                "Windsor Framework - Green Lanes & interface to TGP (Trader Goods Profile)"
+            ]
+        },
+        "CDS major incidents": {
+            "priority": 3,
+            "epics": [
+                "CDS major incidents"
+            ]
+        }
+    }
+}

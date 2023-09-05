@@ -1,5 +1,6 @@
 import csv
 import os
+import json
 import shutil
 from dotenv import load_dotenv
 from docx import Document
@@ -11,7 +12,7 @@ from docx.oxml import parse_xml
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from classes.story import Story, StoryGroup
+from classes.story import Story, StoryGroup, StoryTheme
 import classes.globals as g
 
 
@@ -19,9 +20,11 @@ class ReportWriter(object):
     def __init__(self):
         self.get_date_string()
         self.get_config()
+        self.get_theme_assignments()
         self.get_latest_csv()
         self.read_csv()
         self.group_stories()
+        self.theme_stories()
 
     def get_date_string(self):
         d = datetime.now()
@@ -65,6 +68,17 @@ class ReportWriter(object):
             month=self.month_name,
         )
 
+    def get_theme_assignments(self):
+        filename = os.path.join(os.getcwd(), "resources", "config", "config.json")
+        f = open(filename, 'r')
+        theme_assignments = json.load(f)
+        theme_assignments = theme_assignments["theme_assignments"]
+        self.theme_assignments = {}
+        for theme in theme_assignments:
+            priority = theme_assignments[theme]["priority"]
+            for epic in theme_assignments[theme]["epics"]:
+                self.theme_assignments[epic] = {"theme": theme, "priority": priority}
+
     def read_csv(self):
         with open(self.csv_file, encoding="utf8") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
@@ -74,7 +88,7 @@ class ReportWriter(object):
                     self.get_keys(row)
                     line_count += 1
                 else:
-                    story = Story(row)
+                    story = Story(row, self.theme_assignments)
                     self.stories.append(story)
                     line_count += 1
             print(f'Processed {line_count} lines.')
@@ -95,25 +109,42 @@ class ReportWriter(object):
                 field["actual"] = field["default"]
 
     def group_stories(self):
+        self.sort_stories()
         self.story_groups = []
         previous_epic = "dummy"
-        story_group = StoryGroup()
 
         if (len(self.stories)) > 0:
             for story in self.stories:
                 if story.epic != previous_epic:
-                    if len(story_group.stories) > 0:
-                        self.story_groups.append(story_group)
                     story_group = StoryGroup()
                     story_group.epic = story.epic
+                    story_group.theme = story.theme
+                    story_group.priority = story.priority
                     story_group.stories.append(story)
-                else:
-                    story_group.stories.append(story)
+
+                story_group.stories.append(story)
 
                 previous_epic = story.epic
 
-        story_group.epic = story.epic
-        self.story_groups.append(story_group)
+    def sort_stories(self):
+        self.stories.sort(key=lambda x: x.epic, reverse=False)
+        self.stories.sort(key=lambda x: x.priority, reverse=False)
+
+    def theme_stories(self):
+        self.story_themes = []
+        previous_theme = "dummy"
+
+        if (len(self.story_groups)) > 0:
+            for story_group in self.story_groups:
+                if story_group.theme != previous_theme:
+                    story_theme = StoryTheme()
+                    story_theme.theme = story_group.theme
+                    story_theme.priority = story_group.priority
+                    self.story_themes.append(story_theme)
+
+                story_theme.story_groups.append(story_group)
+
+                previous_theme = story_group.theme
 
     def set_repeat_table_header(self, row):
         tr = row._tr
@@ -132,66 +163,69 @@ class ReportWriter(object):
         self.document = Document(self.template_filename)
         self.document.add_heading(self.title, 0)
 
-        for story_group in self.story_groups:
-            total = 0
-            self.document.add_heading(story_group.epic, 1)
+        for story_theme in self.story_themes:
+            heading_text = "Delivery theme: {theme}".format(theme=story_theme.theme)
+            self.document.add_heading(heading_text, 1)
+            for story_group in story_theme.story_groups:
+                total = 0
+                self.document.add_heading(story_group.epic, 2)
 
-            if self.write_story_points:
-                widths = (Cm(2.5), Cm(12), Cm(1.5))
-                headers = ["Story", "Description", "Points"]
-                column_count = 3
-                row_increment = 2
-            else:
-                widths = (Cm(2.5), Cm(13.5))
-                headers = ["Story", "Description"]
-                column_count = 2
-                row_increment = 1
-
-            # Add the table
-            table = self.document.add_table(rows=len(story_group.stories) + row_increment, cols=column_count)
-            table.style = "List Table 3"
-
-            # Set table widths
-            for row in table.rows:
-                for idx, width in enumerate(widths):
-                    row.cells[idx].width = width
-
-            # Set table headers
-            self.set_repeat_table_header(table.rows[0])
-            hdr_cells = table.rows[0].cells
-            for i in range(0, len(headers)):
-                p = hdr_cells[i].paragraphs[0]
-                if i == 2:
-                    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p.text = headers[i]
-
-                # hdr_cells[i].text = headers[i]
-
-            # Fill table cells
-            row_count = 1
-            for story in story_group.stories:
-                cells = table.rows[row_count].cells
-                cells[0].text = story.key
-                cells[1].text = story.summary
                 if self.write_story_points:
-                    p = cells[2].paragraphs[0]
-                    if story.story_points != "":
-                        total += int(story.story_points)
-                        p.text = story.story_points
+                    widths = (Cm(2.5), Cm(12), Cm(1.5))
+                    headers = ["Story", "Description", "Points"]
+                    column_count = 3
+                    row_increment = 2
+                else:
+                    widths = (Cm(2.5), Cm(13.5))
+                    headers = ["Story", "Description"]
+                    column_count = 2
+                    row_increment = 1
+
+                # Add the table
+                table = self.document.add_table(rows=len(story_group.stories) + row_increment, cols=column_count)
+                table.style = "List Table 3"
+
+                # Set table widths
+                for row in table.rows:
+                    for idx, width in enumerate(widths):
+                        row.cells[idx].width = width
+
+                # Set table headers
+                self.set_repeat_table_header(table.rows[0])
+                hdr_cells = table.rows[0].cells
+                for i in range(0, len(headers)):
+                    p = hdr_cells[i].paragraphs[0]
+                    if i == 2:
                         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    p.text = headers[i]
 
-                row_count += 1
+                    # hdr_cells[i].text = headers[i]
 
-            # Write the totals row
-            if self.write_story_points:
-                row = table.rows[row_count]
-                self.color_row(row, "f0f0f0")
-                cells = row.cells
-                cells[0].text = "TOTAL"
-                p = cells[2].paragraphs[0]
-                runner = p.add_run(str(total))
-                runner.bold = True
-                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # Fill table cells
+                row_count = 1
+                for story in story_group.stories:
+                    cells = table.rows[row_count].cells
+                    cells[0].text = story.key
+                    cells[1].text = story.summary
+                    if self.write_story_points:
+                        p = cells[2].paragraphs[0]
+                        if story.story_points != "":
+                            total += int(story.story_points)
+                            p.text = story.story_points
+                            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+                    row_count += 1
+
+                # Write the totals row
+                if self.write_story_points:
+                    row = table.rows[row_count]
+                    self.color_row(row, "f0f0f0")
+                    cells = row.cells
+                    cells[0].text = "TOTAL"
+                    p = cells[2].paragraphs[0]
+                    runner = p.add_run(str(total))
+                    runner.bold = True
+                    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
         self.document.save(self.report_filename)
         self.copy_to_governance_folder()
