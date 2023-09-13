@@ -120,9 +120,11 @@ class ReportWriter(object):
                     story_group.epic = story.epic
                     story_group.theme = story.theme
                     story_group.priority = story.priority
-                    story_group.stories.append(story)
+                    self.story_groups.append(story_group)
 
                 story_group.stories.append(story)
+
+                # story_group.stories.append(story)
 
                 previous_epic = story.epic
 
